@@ -1,0 +1,337 @@
+*deployment.txt*	Deploy files to multiple servers using rsync
+
+Author: Danish Bhatti
+License: MIT
+
+==============================================================================
+CONTENTS						*deployment-contents*
+
+    1. Introduction .......................... |deployment-introduction|
+    2. Installation .......................... |deployment-installation|
+    3. Configuration ......................... |deployment-configuration|
+    4. Commands .............................. |deployment-commands|
+    5. Functions ............................. |deployment-functions|
+    6. Keymaps ............................... |deployment-keymaps|
+    7. Deployment File Format ............... |deployment-file-format|
+    8. Examples .............................. |deployment-examples|
+    9. FAQ ................................... |deployment-faq|
+
+==============================================================================
+1. INTRODUCTION					*deployment-introduction*
+
+deployment.nvim is a Neovim plugin for deploying files to multiple servers
+using rsync. It replicates JetBrains IDE deployment functionality with 
+parallel deployment support.
+
+Features:
+- Parallel deployments to multiple servers
+- File-level and project-level deployments
+- Single and multi-configuration support
+- rsync integration with customizable options
+- Real-time progress tracking
+- Debug mode for troubleshooting
+
+Requirements:
+- Neovim >= 0.7.0
+- plenary.nvim
+- rsync command in PATH
+- SSH access to target servers
+
+==============================================================================
+2. INSTALLATION					*deployment-installation*
+
+Using lazy.nvim: >
+    {
+      "yourusername/deployment.nvim",
+      dependencies = { "nvim-lua/plenary.nvim" },
+      config = function()
+        require("deployment").setup()
+      end,
+      cmd = { "Deploy", "DeployAll", "DeployList", "DeployInit" },
+    }
+<
+
+Using packer.nvim: >
+    use {
+      "yourusername/deployment.nvim",
+      requires = { "nvim-lua/plenary.nvim" },
+      config = function()
+        require("deployment").setup()
+      end
+    }
+<
+
+Manual installation:
+1. Clone the repository to your plugin directory
+2. Add to your init.lua: require("deployment").setup()
+
+==============================================================================
+3. CONFIGURATION				*deployment-configuration*
+
+Default configuration: >
+    require("deployment").setup({
+      deployment_file = ".deployment",
+      rsync_options = {
+        "-avz",
+        "--exclude=.git/",
+        "--exclude=.DS_Store",
+        "--exclude=node_modules/",
+      },
+      parallel_jobs = 5,
+      timeout = 30000,
+      debug = false,
+      delete_remote_files = false,
+      keymaps = true,
+    })
+<
+
+Configuration options:
+
+deployment_file			*deployment-config-deployment_file*
+	Name of the deployment configuration file.
+	Default: ".deployment"
+
+rsync_options			*deployment-config-rsync_options*
+	List of default rsync options.
+	Default: {"-avz", "--exclude=.git/", "--exclude=.DS_Store", 
+	         "--exclude=node_modules/"}
+
+parallel_jobs			*deployment-config-parallel_jobs*
+	Maximum number of parallel deployment jobs.
+	Default: 5
+
+timeout				*deployment-config-timeout*
+	Deployment timeout in milliseconds.
+	Default: 30000 (30 seconds)
+
+debug				*deployment-config-debug*
+	Enable debug mode for troubleshooting.
+	Default: false
+
+delete_remote_files		*deployment-config-delete_remote_files*
+	Add --delete flag to rsync (removes remote files not in local).
+	Default: false
+
+keymaps				*deployment-config-keymaps*
+	Enable default keymaps.
+	Default: true
+
+==============================================================================
+4. COMMANDS					*deployment-commands*
+
+:Deploy [server]				*:Deploy*
+	Deploy to specific server or all servers if no server specified.
+
+:DeployAll					*:DeployAll*
+	Deploy to all configured servers in parallel.
+
+:DeployList					*:DeployList*
+	List all configured deployment servers.
+
+:DeployInit [multi]				*:DeployInit*
+	Create example .deployment file. Use 'multi' for multi-configuration.
+
+:DeployFile [server]				*:DeployFile*
+	Deploy current file to specific server or all servers.
+
+:DeployFileAll					*:DeployFileAll*
+	Deploy current file to all configured servers.
+
+:DeployFilePath <path> [server]			*:DeployFilePath*
+	Deploy specific file by path to server(s).
+
+:DeployConfigs					*:DeployConfigs*
+	List all available configurations (multi-config only).
+
+:DeploySetActive <config>			*:DeploySetActive*
+	Set active configuration (multi-config only).
+
+:DeployDebug					*:DeployDebug*
+	Toggle debug mode on/off.
+
+:DeployDebugParse				*:DeployDebugParse*
+	Debug deployment file parsing and configuration.
+
+==============================================================================
+5. FUNCTIONS					*deployment-functions*
+
+require("deployment").setup({opts})		*deployment.setup()*
+	Setup the plugin with configuration options.
+
+require("deployment").deploy_all(show_progress) *deployment.deploy_all()*
+	Deploy to all configured servers.
+	Parameters:
+	  {show_progress} (boolean) Show progress notifications
+
+require("deployment").deploy_to_specific_server(server_name) *deployment.deploy_to_specific_server()*
+	Deploy to a specific server.
+	Parameters:
+	  {server_name} (string) Name of the server
+
+require("deployment").deploy_current_file_to_all(show_progress) *deployment.deploy_current_file_to_all()*
+	Deploy current file to all servers.
+	Parameters:
+	  {show_progress} (boolean) Show progress notifications
+
+require("deployment").list_servers()		*deployment.list_servers()*
+	List all configured servers.
+
+require("deployment").get_project_root()	*deployment.get_project_root()*
+	Get the project root directory (looks for .deployment file).
+
+require("deployment").lualine_component()	*deployment.lualine_component()*
+	Get lualine component for status line integration.
+
+==============================================================================
+6. KEYMAPS					*deployment-keymaps*
+
+Default keymaps (can be disabled with keymaps = false):
+
+<leader>ta		Deploy to all servers
+<leader>ts		Deploy to specific server (interactive selection)
+<leader>tl		List deployment servers
+<leader>ti		Create .deployment file (interactive)
+<leader>tf		Deploy current file to all servers
+<leader>tF		Deploy current file to specific server
+<leader>tc		List configurations
+<leader>tC		Set active configuration
+
+==============================================================================
+7. DEPLOYMENT FILE FORMAT			*deployment-file-format*
+
+Simple Configuration~
+
+Create a .deployment file in your project root: >
+    # Deployment configuration (YAML format)
+    servers:
+      staging:
+        host: user@staging.example.com
+        remote_path: /var/www/html
+        local_path: .
+      
+      production:
+        host: deploy@prod.example.com
+        remote_path: /var/www/html
+        local_path: ./dist
+
+    # Exclude patterns
+    exclude:
+      - "*.log"
+      - "tmp/"
+      - ".env*"
+
+    # Include patterns (processed before excludes)
+    include:
+      - "important.log"
+
+    # Additional rsync options
+    options:
+      - "--compress-level=6"
+      - "--partial"
+<
+
+Multi-Configuration~
+
+For projects with multiple deployment environments: >
+    active: development
+
+    configurations:
+      development:
+        servers:
+          dev1:
+            host: dev@dev1.example.com
+            remote_path: /var/www/dev
+            local_path: .
+        exclude:
+          - "*.log"
+        options:
+          - "--dry-run"
+
+      production:
+        servers:
+          prod1:
+            host: deploy@prod1.example.com
+            remote_path: /var/www/html
+            local_path: ./dist
+        exclude:
+          - "*.log"
+          - "*.tmp"
+<
+
+Server Configuration Fields~
+
+host			Required. SSH connection string (user@hostname).
+remote_path		Required. Remote directory path.
+local_path		Optional. Local directory path (default: ".").
+
+==============================================================================
+8. EXAMPLES					*deployment-examples*
+
+Basic Usage~
+
+1. Create deployment file: >
+    :DeployInit
+<
+
+2. Edit .deployment file with your server details
+
+3. Deploy to all servers: >
+    :DeployAll
+<
+
+4. Deploy single file: >
+    :DeployFile
+<
+
+Multi-Configuration Setup~
+
+1. Create multi-config file: >
+    :DeployInit multi
+<
+
+2. List configurations: >
+    :DeployConfigs
+<
+
+3. Set active configuration: >
+    :DeploySetActive production
+<
+
+4. Deploy with active config: >
+    :DeployAll
+<
+
+Lualine Integration~
+>
+    require('lualine').setup {
+      sections = {
+        lualine_x = {
+          require("deployment").lualine_component(),
+          'encoding', 'fileformat', 'filetype'
+        },
+      }
+    }
+<
+
+==============================================================================
+9. FAQ						*deployment-faq*
+
+Q: How do I set up SSH key authentication?
+A: Ensure your SSH key is added to target servers and SSH agent is running:
+   ssh-add ~/.ssh/your_key
+
+Q: How do I exclude sensitive files?
+A: Add patterns to the exclude section in .deployment file.
+
+Q: How do I debug deployment issues?
+A: Use :DeployDebug to enable debug mode and :DeployDebugParse to test
+   configuration parsing.
+
+Q: Can I use different local paths for different servers?
+A: Yes, configure different local_path for each server in the servers section.
+
+Q: How do I disable default keymaps?
+A: Set keymaps = false in setup() configuration.
+
+==============================================================================
+vim:tw=78:ts=8:noet:ft=help:norl:

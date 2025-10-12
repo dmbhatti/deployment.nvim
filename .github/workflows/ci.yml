@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        neovim_version: ['stable', 'nightly']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Neovim
+      uses: rhymond/setup-neovim@v1
+      with:
+        neovim-version: ${{ matrix.neovim_version }}
+
+    - name: Install Lua
+      uses: leafo/gh-actions-lua@v10
+      with:
+        luaVersion: "5.1"
+
+    - name: Install Luarocks
+      uses: leafo/gh-actions-luarocks@v4
+
+    - name: Install dependencies
+      run: |
+        luarocks install busted
+        luarocks install luacheck
+
+    - name: Run Luacheck
+      run: luacheck lua/ --globals vim
+
+    - name: Run tests
+      run: |
+        # Add test runner here when tests are implemented
+        echo "Tests would run here"
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Lua
+      uses: leafo/gh-actions-lua@v10
+      with:
+        luaVersion: "5.1"
+
+    - name: Install Luarocks
+      uses: leafo/gh-actions-luarocks@v4
+
+    - name: Install Luacheck
+      run: luarocks install luacheck
+
+    - name: Run Luacheck
+      run: luacheck lua/ --globals vim
