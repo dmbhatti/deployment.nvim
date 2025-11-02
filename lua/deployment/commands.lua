@@ -45,11 +45,14 @@ local function get_file_completion()
 
     -- Get all files in project (excluding common build/temp directories)
     local files = {}
-    local handle = io.popen(
-        "find '"
-            .. project_root
-            .. "' -type f -not -path '*/node_modules/*' -not -path '*/.git/*' -not -path '*/dist/*' -not -path '*/build/*' -not -path '*/target/*' 2>/dev/null"
-    )
+    local find_cmd = "find '" .. project_root .. "' -type f"
+        .. " -not -path '*/node_modules/*'"
+        .. " -not -path '*/.git/*'"
+        .. " -not -path '*/dist/*'"
+        .. " -not -path '*/build/*'"
+        .. " -not -path '*/target/*'"
+        .. " 2>/dev/null"
+    local handle = io.popen(find_cmd)
 
     if handle then
         for file in handle:lines() do
@@ -135,7 +138,7 @@ function M.setup_commands()
     end, {
         desc = "Deploy file by path to all servers or specific server",
         nargs = "+",
-        complete = function(arg_lead, cmd_line, cursor_pos)
+        complete = function(arg_lead, cmd_line, _cursor_pos)
             local args = vim.split(cmd_line, "%s+")
             local arg_count = #args
 

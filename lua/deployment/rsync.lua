@@ -91,7 +91,7 @@ function M.execute_rsync(cmd, callback)
                 callback(false, stderr, duration)
             end
         end,
-        on_stderr = function(_, data)
+        on_stderr = function(_, _data)
             -- Store stderr for error reporting
         end,
     }):start()

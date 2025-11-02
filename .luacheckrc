@@ -15,6 +15,7 @@ globals = {
 -- Ignore some common warnings
 ignore = {
   "212/_.*", -- unused argument, for vars with "_" prefix
+  "213/_.*", -- unused loop variable, for vars with "_" prefix
   "214", -- unused variable
   "121", -- setting read-only global variable
   "122", -- setting read-only field of global variable

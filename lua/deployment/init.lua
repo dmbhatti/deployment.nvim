@@ -585,12 +585,12 @@ servers:
     host: user@staging.example.com
     remote_path: /var/www/html
     local_path: .
-  
+
   production:
     host: deploy@prod.example.com
     remote_path: /var/www/html
     local_path: ./dist
-  
+
   backup:
     host: backup@backup.server.com
     remote_path: /backups/myproject

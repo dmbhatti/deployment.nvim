@@ -38,9 +38,8 @@ local function parse_simple_yaml(content)
     local stack = { { table = result, indent = -1 } }
 
     for _, line in ipairs(lines) do
-        if line:match("^%s*$") or line:match("^%s*#") then
         -- Skip empty lines and comments
-        else
+        if not (line:match("^%s*$") or line:match("^%s*#")) then
             local indent = #line:match("^%s*")
             local trimmed = vim.trim(line)
 
@@ -92,7 +91,7 @@ function M.parse_multi_config_deployment(deployment_file_path)
     end
 
     -- Convert servers from hash to array format
-    for config_name, config in pairs(parsed.configurations) do
+    for _config_name, config in pairs(parsed.configurations) do
         if config.servers then
             local servers_array = {}
             for server_name, server_props in pairs(config.servers) do
