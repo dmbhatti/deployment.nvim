@@ -18,7 +18,7 @@ A Neovim plugin for deploying files to multiple servers using rsync. Replicates 
 
 ```lua
 {
-  "yourusername/deployment.nvim",
+  "dmbhatti/deployment.nvim",
   dependencies = {
     "nvim-lua/plenary.nvim",
     -- Optional: for better key binding descriptions
@@ -43,7 +43,7 @@ A Neovim plugin for deploying files to multiple servers using rsync. Replicates 
 
 ```lua
 use {
-  "yourusername/deployment.nvim",
+  "dmbhatti/deployment.nvim",
   requires = { "nvim-lua/plenary.nvim" },
   config = function()
     require("deployment").setup()
@@ -55,7 +55,7 @@ use {
 
 ```vim
 Plug 'nvim-lua/plenary.nvim'
-Plug 'yourusername/deployment.nvim'
+Plug 'dmbhatti/deployment.nvim'
 ```
 
 Then in your `init.lua`:
