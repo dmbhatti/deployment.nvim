@@ -31,7 +31,12 @@ function M.build_rsync_command(config, server, project_root)
     end
 
     -- Source path
-    local source_path = Path:new(project_root, server.local_path):absolute()
+    local source_path
+    if server.local_path:match("^/") or server.local_path:match("^%a:") then
+        source_path = Path:new(server.local_path):absolute()
+    else
+        source_path = Path:new(project_root, server.local_path):absolute()
+    end
     if not source_path:match("/$") then
         source_path = source_path .. "/"
     end
