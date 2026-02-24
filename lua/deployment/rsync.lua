@@ -113,11 +113,31 @@ end
 
 -- Deploy single file to server
 function M.deploy_single_file_to_server(config, server, project_root, relative_path, callback)
-    local cmd = M.build_file_rsync_command(config, server, project_root, relative_path)
+    -- Normalize: strip project_root prefix if relative_path is absolute
+    if vim.startswith(relative_path, "/") then
+        local root = project_root:gsub("/?$", "")
+        if vim.startswith(relative_path, root .. "/") then
+            relative_path = relative_path:sub(#root + 2)
+        end
+    end
 
-    M.execute_rsync(cmd, function(success, error_msg, duration)
-        callback(server, success, error_msg, duration)
-    end)
+    local remote_dir = vim.fn.fnamemodify(server.remote_path .. "/" .. relative_path, ":h")
+    local ssh_cmd = { "ssh", server.host, "mkdir -p " .. remote_dir }
+
+    Job:new({
+        command = ssh_cmd[1],
+        args = vim.list_slice(ssh_cmd, 2),
+        on_exit = function(_, ssh_ret)
+            if ssh_ret ~= 0 then
+                callback(server, false, "ssh mkdir -p failed for " .. remote_dir, 0)
+                return
+            end
+            local cmd = M.build_file_rsync_command(config, server, project_root, relative_path)
+            M.execute_rsync(cmd, function(success, error_msg, duration)
+                callback(server, success, error_msg, duration)
+            end)
+        end,
+    }):start()
 end
 
 return M
