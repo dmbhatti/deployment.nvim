@@ -4,9 +4,19 @@ local M = {}
 local Path = require("plenary.path")
 
 -- Get project root directory
-function M.get_project_root()
-    local current_file = vim.api.nvim_buf_get_name(0)
-    local current_dir = vim.fn.fnamemodify(current_file, ":h")
+-- @param start_path string|nil optional file/dir path to search from (defaults to current buffer)
+function M.get_project_root(start_path)
+    local current_dir
+    if start_path then
+        if vim.fn.isdirectory(start_path) == 1 then
+            current_dir = start_path
+        else
+            current_dir = vim.fn.fnamemodify(start_path, ":h")
+        end
+    else
+        local current_file = vim.api.nvim_buf_get_name(0)
+        current_dir = vim.fn.fnamemodify(current_file, ":h")
+    end
 
     -- Look for .deployment file up the directory tree
     local path = Path:new(current_dir)
@@ -309,7 +319,7 @@ end
 
 -- Deploy file by path to all servers
 function M.deploy_file_by_path_to_all(file_path, show_progress)
-    local project_root = M.get_project_root()
+    local project_root = M.get_project_root(file_path)
 
     -- Resolve and validate file path
     local full_path = Path:new(file_path):absolute()
@@ -779,6 +789,9 @@ function M.setup(opts)
     if opts and opts.keymaps ~= false then
         require("deployment.commands").setup_keymaps()
     end
+
+    -- Setup neo-tree integration (if neo-tree is installed)
+    require("deployment.integrations.neotree").setup()
 
     -- Make module globally available for backwards compatibility
     _G.Deployment = M

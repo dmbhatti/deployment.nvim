@@ -296,6 +296,38 @@ For other status line plugins:
 local deployment_status = require("deployment").lualine_component()
 ```
 
+### Neo-tree Integration
+
+Deploy files directly from the [neo-tree.nvim](https://github.com/nvim-neo-tree/neo-tree.nvim) file explorer by adding a custom mapping to neo-tree's `window.mappings`. The integration module exposes a `deploy_node(state)` handler that receives neo-tree's state directly, so the node path is always correct.
+
+Add to your neo-tree plugin spec:
+
+```lua
+{
+  "nvim-neo-tree/neo-tree.nvim",
+  opts = {
+    commands = {
+      deploy_node = function(state)
+        require("deployment.integrations.neotree").deploy_node(state)
+      end,
+      deploy_node_visual = function(state, selected_nodes)
+        require("deployment.integrations.neotree").deploy_node_visual(state, selected_nodes)
+      end,
+    },
+    window = {
+      mappings = {
+        ["T"] = { "deploy_node", desc = "Deploy file to servers (deployment.nvim)" },
+      },
+    },
+  },
+}
+```
+
+- Press `T` on a file or directory in normal mode to deploy it to all configured servers.
+- Visually select multiple files with `V`, then press `T` to deploy all of them.
+
+Neo-tree automatically wires `deploy_node_visual` as the visual-mode handler for `T` because it follows the `<command>_visual` naming convention. Both handlers respect your `.deployment` config and show the usual progress notifications.
+
 ## Requirements
 
 - Neovim >= 0.7.0

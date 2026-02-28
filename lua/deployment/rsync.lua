@@ -69,10 +69,17 @@ function M.build_file_rsync_command(config, server, project_root, relative_path)
 
     -- Source file (full path)
     local source_file = Path:new(project_root, relative_path):absolute()
+    local is_dir = vim.fn.isdirectory(source_file) == 1
+    if is_dir then
+        source_file = source_file:gsub("/?$", "/")
+    end
     table.insert(cmd, source_file)
 
     -- Destination (preserve directory structure)
     local dest = server.host .. ":" .. server.remote_path .. "/" .. relative_path
+    if is_dir then
+        dest = dest:gsub("/?$", "/")
+    end
     table.insert(cmd, dest)
 
     return cmd
@@ -121,7 +128,13 @@ function M.deploy_single_file_to_server(config, server, project_root, relative_p
         end
     end
 
-    local remote_dir = vim.fn.fnamemodify(server.remote_path .. "/" .. relative_path, ":h")
+    local is_dir = vim.fn.isdirectory(Path:new(project_root, relative_path):absolute()) == 1
+    local remote_dir
+    if is_dir then
+        remote_dir = server.remote_path .. "/" .. relative_path
+    else
+        remote_dir = vim.fn.fnamemodify(server.remote_path .. "/" .. relative_path, ":h")
+    end
     local ssh_cmd = { "ssh", server.host, "mkdir -p " .. remote_dir }
 
     Job:new({
