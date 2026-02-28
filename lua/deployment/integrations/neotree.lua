@@ -10,7 +10,7 @@ function M.deploy_node(state)
 end
 
 -- Visual mode: deploy all selected nodes (same signature as neo-tree visual commands)
-function M.deploy_node_visual(state, selected_nodes)
+function M.deploy_node_visual(_state, selected_nodes)
     local deploy = require("deployment")
     for _, node in ipairs(selected_nodes) do
         if node.type ~= "message" then

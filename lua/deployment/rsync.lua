@@ -87,13 +87,13 @@ end
 
 -- Execute rsync command
 function M.execute_rsync(cmd, callback)
-    local start_time = vim.loop.hrtime()
+    local start_time = vim.uv.hrtime()
 
     Job:new({
         command = cmd[1],
         args = vim.list_slice(cmd, 2),
         on_exit = function(j, return_val)
-            local end_time = vim.loop.hrtime()
+            local end_time = vim.uv.hrtime()
             local duration = math.floor((end_time - start_time) / 1000000) -- Convert to milliseconds
 
             if return_val == 0 then
@@ -103,9 +103,7 @@ function M.execute_rsync(cmd, callback)
                 callback(false, stderr, duration)
             end
         end,
-        on_stderr = function(_, _data)
-            -- Store stderr for error reporting
-        end,
+        on_stderr = function() end,
     }):start()
 end
 
